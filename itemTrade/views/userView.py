@@ -2,8 +2,8 @@ from rest_framework import status,serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
-from ..serializers.userSerializers import UserSerializer,ImageSerializer
+from rest_framework.permissions import IsAuthenticated,AllowAny
+from ..serializers.userSerializers import UserSerializer,RegisterSerializer, ImageSerializer
 from django.contrib.auth.models import User
 
 from ..models import *
@@ -14,23 +14,17 @@ class RegisterView(APIView):
     authentication_classes = []
     permission_classes = []
 
-    serializer_class = UserSerializer
+    serializer_class = RegisterSerializer
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
 
-        try:
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response({
-                    'code':'0',
-                    'message':'注册成功'
-                },status=status.HTTP_200_OK)
-        except serializers.ValidationError as e:
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
             return Response({
-                'code':1,
-                'message':f"数据验证出错,{e.detail}"
-            })
+                'code':'0',
+                'message':'注册成功'
+            },status=status.HTTP_200_OK)
 
 class UserView(APIView):
     """用户相关操作视图"""

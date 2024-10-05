@@ -1,6 +1,33 @@
 from rest_framework import serializers
 from ..models import User,Profile,ItemImage
 
+class RegisterSerializer(serializers.ModelSerializer):
+    """注册用模型"""
+    confirm_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['username','password','confirm_password']
+
+    def validate(self, data):
+        # 检查password和repassword是否相等
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match")
+        
+        # 检查用户名是否已经存在
+        if User.objects.filter(username=data['username']).exists():
+            raise serializers.ValidationError("Username already exists")
+
+        return data
+
+    def create(self, validated_data):
+        # 删除确认密码字段
+        del validated_data['confirm_password']
+        user = User.objects.create_user(username=validated_data['username'])
+        user.set_password(validated_data['password'])
+        return user
+        
+
 class UserSerializer(serializers.ModelSerializer):
     """用户序列化模型"""
     student_id = serializers.CharField(required=False, allow_blank=True)
