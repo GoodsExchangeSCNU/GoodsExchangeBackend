@@ -37,6 +37,7 @@ class UserView(APIView):
             serializer = UserSerializer(user)
             return Response({
                 'code':0,
+                'message':"获取成功",
                 'data':serializer.data
             })
         else:
@@ -45,6 +46,7 @@ class UserView(APIView):
                 serializer = UserSerializer(user)
                 return Response({
                     'code':0,
+                    'message':"获取成功",
                     'data':serializer.data
                 })
             except User.DoesNotExist:
