@@ -42,7 +42,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        field = '__all__'
+        fields = '__all__'
         extra_kwargs = {
             'student_id':{'required':False},
             'student_class':{'required':False},
@@ -61,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username', 'email','profile']
         # 这里将profile的字段都设置出来，为了让创建和更新的时候可以不嵌套
         extra_kwargs = {
-            'username':{'required':True},
+            'username':{'required':False},
             'email':{'required':False}
         }
 
