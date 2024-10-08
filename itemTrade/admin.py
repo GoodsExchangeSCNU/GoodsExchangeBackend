@@ -16,10 +16,28 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('username','email')
     inlines = (ProfieInline,)
 
+class ImageInline(admin.StackedInline):
+    model = ItemImage
+    can_delete = True
+    verbose_name_plural = "images"
+    fields = ('image',)
+
+class CommentInline(admin.StackedInline):
+    model = ReviewForItem
+    can_delete = True
+    verbose_name_plural = "comments"
+    fields = ('owner','body')
+
+class ItemAdmin(admin.ModelAdmin):
+    fields = ('id','owner','name','description','count','price')
+    readonly_fields = ('id','owner')
+
+    inlines = (ImageInline,CommentInline)
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
-admin.site.register(Item)
+admin.site.register(Item,ItemAdmin)
 admin.site.register(Trade)
 admin.site.register(ItemImage)
 admin.site.register(ReviewForItem)

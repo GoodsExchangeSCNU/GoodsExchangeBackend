@@ -1,5 +1,3 @@
-import pdb
-
 from rest_framework import serializers
 from ..models import User,Profile,ItemImage,Trade,Item
 
@@ -105,8 +103,3 @@ class RecordSerializer(serializers.ModelSerializer):
 
 
 
-class ImageSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ItemImage
-        fields = '__all__'

@@ -26,13 +26,12 @@ class Profile(models.Model):
     
 class Item(models.Model):
     """物品"""
-    owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True,related_name='item')
     name = models.CharField(max_length=50,null=True,blank=True)
     description = models.TextField(max_length=100,null=True,blank=True)
     count = models.IntegerField(default=1,null=True,blank=True)
     price = models.IntegerField(default=1,null=True,blank=True)
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
-    models.ImageField()
 
     def __str__(self) -> str:
         return self.name
