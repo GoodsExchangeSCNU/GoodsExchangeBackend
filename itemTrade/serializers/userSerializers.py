@@ -1,7 +1,7 @@
 import pdb
 
 from rest_framework import serializers
-from ..models import User,Profile,ItemImage
+from ..models import User,Profile,ItemImage,Trade,Item
 
 from ..utils.errors import ValidationError
 
@@ -34,6 +34,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         del validated_data['confirm_password']
         user = User.objects.create_user(username=validated_data['username'])
         user.set_password(validated_data['password'])
+        user.save()
         return user
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -81,6 +82,28 @@ class UserSerializer(serializers.ModelSerializer):
             profile.save()
 
         return instance
+
+class RecordUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username']
+
+class RecordItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Item
+        fields = ['img','name','price']
+
+class RecordSerializer(serializers.ModelSerializer):
+    """交易记录序列化模型"""
+    seller = RecordUserSerializer()
+    buyer = RecordUserSerializer()
+    item = RecordItemSerializer()
+
+    class Meta:
+        model = Trade
+        fields = ['id','state','seller','buyer','item']
+
+
 
 class ImageSerializer(serializers.ModelSerializer):
 

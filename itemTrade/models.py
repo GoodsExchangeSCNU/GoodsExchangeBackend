@@ -41,7 +41,7 @@ class ItemImage(models.Model):
     """储存单张图片"""
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
     image = models.ImageField(upload_to='images/')
-    item = models.ForeignKey(Item,on_delete=models.CASCADE, null=True, blank=True)
+    item = models.ForeignKey(Item,on_delete=models.CASCADE, null=True, blank=True,related_name='img')
 
 class Trade(models.Model):
     """交易实例"""
@@ -51,7 +51,8 @@ class Trade(models.Model):
         ('Code_2', '购买'),
         ('Code_3', '出售'),
         ('Code_4', '拒绝'),
-        ('Code_5', '完成')
+        ('Code_5', '完成'),
+        ('Code_6', '已出货')
     )
 
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='sell_trade')

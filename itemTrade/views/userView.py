@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
-from ..serializers.userSerializers import UserSerializer,RegisterSerializer, ImageSerializer
+from ..serializers.userSerializers import UserSerializer,RegisterSerializer,RecordSerializer
 from django.contrib.auth.models import User
 
 from ..models import *
@@ -66,3 +66,38 @@ class UserView(APIView):
                 'code':0,
                 'message':'修改成功'
             })
+
+class BuyerRecordView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = RecordSerializer
+
+    def get(self,request):
+        user = request.user
+        recode = user.buy_trade
+        serializer = self.serializer_class(recode,many=True)
+
+        return Response({
+            'code':0,
+            'message':"获取成功",
+            'data':serializer.data
+        })
+
+
+class SellerRecordView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = RecordSerializer
+
+    def get(self, request):
+        user = request.user
+        recode = user.sell_trade
+        serializer = self.serializer_class(recode, many=True)
+
+        return Response({
+            'code': 0,
+            'message': "获取成功",
+            'data': serializer.data
+        })
