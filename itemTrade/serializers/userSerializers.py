@@ -1,5 +1,3 @@
-import pdb
-
 from rest_framework import serializers
 from ..models import User,Profile,ItemImage,Trade,Item
 
@@ -35,6 +33,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(username=validated_data['username'])
         user.set_password(validated_data['password'])
         user.save()
+
+        Profile.objects.create(user=user)
+
         return user
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -105,8 +106,3 @@ class RecordSerializer(serializers.ModelSerializer):
 
 
 
-class ImageSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ItemImage
-        fields = '__all__'
