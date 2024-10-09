@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
 
 from ..models import Trade
-from ..serializers.tradeSerializers import TradeSerializer, CommentSerializer, RoomListSerializer
+from ..serializers.tradeSerializers import TradeSerializer, CommentSerializer, BuyerRoomListSerializer,SellerRoomListSerializer
 
 
 class TradeView(APIView):
@@ -90,45 +90,20 @@ class RoomListView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    serializer_class = RoomListSerializer
-
     def get(self,request):
         user = request.user
 
         buyerList = user.buy_trade.all()
         sellerList = user.sell_trade.all()
 
-        buyerSerializers = None
-        sellerSerializers = None
+        buyerSerializers = BuyerRoomListSerializer(buyerList,many=True)
+        sellerSerializers = SellerRoomListSerializer(sellerList,many=True)
 
-        if buyerList:
-            buyerList = [{
-                "room_id":trade.id,
-                "username":trade.seller.username,
-                "item":trade.item.to_dict()
+        return Response({
+            'code':0,
+            'message':'获取成功',
+            'data':{
+                'buyer':buyerSerializers.data if buyerSerializers else None,
+                'seller':sellerSerializers.data if sellerSerializers else None
             }
-                         for trade in buyerList]
-
-            buyerSerializers = self.serializer_class(data=buyerList,many=True)
-
-        if sellerList:
-            sellerList = [{
-                "room_id":trade.id,
-                "username":trade.buyer.username,
-                "item":trade.item.to_dict()
-            }
-                         for trade in sellerList]
-
-            sellerSerializers = self.serializer_class(data=sellerList,many=True)
-
-        if (not buyerSerializers or buyerSerializers.is_valid(raise_exception=True))\
-                and\
-            (not sellerSerializers or sellerSerializers.is_valid(raise_exception=True)):
-            return Response({
-                'code':0,
-                'message':'获取成功',
-                'data':{
-                    'buyer':buyerSerializers.data if buyerSerializers else None,
-                    'seller':sellerSerializers.data if sellerSerializers else None
-                }
-            })
+        })

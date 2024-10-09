@@ -80,25 +80,49 @@ class CommentSerializer(serializers.ModelSerializer):
         print(validated_data)
         return ReviewForTrade.objects.create(**validated_data)
 
-class DisplayItemSerializer(serializers.ModelSerializer):
+
+class BuyerRoomListSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Item
+        model = Trade
         fields = '__all__'
-
-    def to_representation(self, instance):
-
-        return {
-            'name':instance.get('name',None)
+        extra_kwargs = {
+            'id':{'read_only':True}
         }
 
+    def to_representation(self, instance):
+        item = instance.item
+        other = instance.seller
 
-class RoomListSerializer(serializers.Serializer):
-    """聊天室序列化器"""
-    room_id = serializers.UUIDField()
-    username = serializers.CharField()
-    item = DisplayItemSerializer()
+        data = {
+            'room_id':instance.id,
+            'username':other.username,
+            'item':{
+                'name':item.name
+            }
+        }
+
+        return data
+
+class SellerRoomListSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['room_id','username','item']
+        model = Trade
+        fields = '__all__'
+        extra_kwargs = {
+            'id':{'read_only':True}
+        }
 
+    def to_representation(self, instance):
+        item = instance.item
+        other = instance.buyer
+
+        data = {
+            'room_id':instance.id,
+            'username':other.username,
+            'item':{
+                'name':item.name
+            }
+        }
+
+        return data
