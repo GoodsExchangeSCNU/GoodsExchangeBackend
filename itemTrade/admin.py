@@ -34,11 +34,23 @@ class ItemAdmin(admin.ModelAdmin):
 
     inlines = (ImageInline,CommentInline)
 
+class TradeCommentInline(admin.StackedInline):
+    model = ReviewForTrade
+    can_delete = True
+    verbose_name_plural = "comments"
+    fields = ('owner','body')
+
+class TradeAdmin(admin.ModelAdmin):
+    fields = ('id','buyer','seller','item','state')
+    readonly_fields = ('id','buyer','seller','item')
+
+    inlines = (TradeCommentInline,)
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 admin.site.register(Item,ItemAdmin)
-admin.site.register(Trade)
+admin.site.register(Trade,TradeAdmin)
 admin.site.register(ItemImage)
 admin.site.register(ReviewForItem)
 admin.site.register(ReviewForTrade)

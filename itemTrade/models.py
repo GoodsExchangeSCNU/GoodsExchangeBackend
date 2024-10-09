@@ -35,7 +35,16 @@ class Item(models.Model):
 
     def __str__(self) -> str:
         return self.name
-    
+
+    def to_dict(self) -> dict:
+        return {
+            'name':self.name,
+            'description':self.description,
+            'count':self.count,
+            'price':self.price,
+            'owner':self.owner.id
+        }
+
 class ItemImage(models.Model):
     """储存单张图片"""
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
