@@ -139,6 +139,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'itemTrade.utils.exceptionHandle.api_exception_handler',
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.JSONParser'
+    ]
 }
 
 CHANNEL_LAYERS = {
@@ -162,3 +167,5 @@ SIMPLE_JWT = {
 ASGI_APPLICATION = "tradingPlatform.asgi.application"
 WSGI_APPLICATION = 'tradingPlatform.wsgi.application'
 
+DEFAULT_CHARSET = 'utf-8'
+FILE_CHARSET = 'utf-8'

@@ -26,22 +26,30 @@ class Profile(models.Model):
     
 class Item(models.Model):
     """物品"""
-    owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True,related_name='item')
     name = models.CharField(max_length=50,null=True,blank=True)
     description = models.TextField(max_length=100,null=True,blank=True)
     count = models.IntegerField(default=1,null=True,blank=True)
     price = models.IntegerField(default=1,null=True,blank=True)
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
-    models.ImageField()
 
     def __str__(self) -> str:
         return self.name
-    
+
+    def to_dict(self) -> dict:
+        return {
+            'name':self.name,
+            'description':self.description,
+            'count':self.count,
+            'price':self.price,
+            'owner':self.owner.id
+        }
+
 class ItemImage(models.Model):
     """储存单张图片"""
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
     image = models.ImageField(upload_to='images/')
-    item = models.ForeignKey(Item,on_delete=models.CASCADE, null=True, blank=True)
+    item = models.ForeignKey(Item,on_delete=models.CASCADE, null=True, blank=True,related_name='img')
 
 class Trade(models.Model):
     """交易实例"""
@@ -51,7 +59,8 @@ class Trade(models.Model):
         ('Code_2', '购买'),
         ('Code_3', '出售'),
         ('Code_4', '拒绝'),
-        ('Code_5', '完成')
+        ('Code_5', '完成'),
+        ('Code_6', '已出货')
     )
 
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='sell_trade')
