@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username','password', 'email','student_id','student_class','contact','facauty','dormitory']
+        fields = ['username','password', 'email','student_id','student_class','contact','facauty','dormitory','id']
         # 这里将profile的字段都设置出来，为了让创建和更新的时候可以不嵌套
         extra_kwargs = {
             'username':{'required':True},
