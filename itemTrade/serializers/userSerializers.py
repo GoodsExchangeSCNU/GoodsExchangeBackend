@@ -59,9 +59,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email','profile']
+        fields = ['id','username', 'email','profile']
         # 这里将profile的字段都设置出来，为了让创建和更新的时候可以不嵌套
         extra_kwargs = {
+            'id':{'required':False,'read_only':True},
             'username':{'required':False},
             'email':{'required':False}
         }
