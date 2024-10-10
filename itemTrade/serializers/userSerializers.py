@@ -10,6 +10,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username','password','confirm_password']
+
         extra_kwargs = {
             'username': {'validators': []},
         }
@@ -104,6 +105,3 @@ class RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
         fields = ['id','state','seller','buyer','item']
-
-
-

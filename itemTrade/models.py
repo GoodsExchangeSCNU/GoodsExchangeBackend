@@ -99,7 +99,7 @@ class ReviewForTrade(models.Model):
 class ChatMessage(models.Model):
     """聊天记录"""
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE,null=False)
-    sender = models.ForeignKey(Profile, on_delete=models.CASCADE,null=True)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     content = models.TextField(null=False)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
