@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
 
 from ..models import Trade
-from ..serializers.tradeSerializers import TradeSerializer, CommentSerializer, BuyerRoomListSerializer,SellerRoomListSerializer
+from ..serializers.tradeSerializers import TradeSerializer, CommentSerializer, BuyerRoomListSerializer,SellerRoomListSerializer, CreateTradeSerializer
 
 
 class TradeView(APIView):
@@ -49,6 +49,25 @@ class TradeView(APIView):
         return Response({
             'code':0,
             'message':'修改成功'
+        })
+
+    def post(self,request):
+        data = {
+            'user':request.user.id,
+            'item':request.data.get('item_id',None)
+        }
+        if not data['item'] or not Trade.objects.filter(id=data['item']).exists():
+            return Response({
+                'code':101,
+                'message':'物品不存在'
+            })
+
+        serializer = CreateTradeSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({
+            'code':0,
+            'message':'添加成功'
         })
 
 

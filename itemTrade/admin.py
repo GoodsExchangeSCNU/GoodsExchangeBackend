@@ -30,7 +30,7 @@ class CommentInline(admin.StackedInline):
 
 class ItemAdmin(admin.ModelAdmin):
     fields = ('id','owner','name','description','count','price')
-    readonly_fields = ('id','owner')
+    readonly_fields = ('id',)
 
     inlines = (ImageInline,CommentInline)
 
@@ -42,7 +42,6 @@ class TradeCommentInline(admin.StackedInline):
 
 class TradeAdmin(admin.ModelAdmin):
     fields = ('id','buyer','seller','item','state')
-    readonly_fields = ('id','buyer','seller','item')
 
     inlines = (TradeCommentInline,)
 

@@ -69,6 +69,21 @@ class TradeSerializer(serializers.ModelSerializer):
 
         return instance
 
+class CreateTradeSerializer(serializers.ModelSerializer):
+    """新增trade实例"""
+    user = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Trade
+        fields = ['item','user']
+
+    def create(self,validated_data):
+        item = validated_data.get("item",None)
+        user = validated_data.get("user",None)
+        trade = Trade.objects.create(item=item,buyer_id=user,seller_id=item.owner.id)
+
+        return trade
+
 class CommentSerializer(serializers.ModelSerializer):
     """交易评论的序列号器"""
 
