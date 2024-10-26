@@ -22,7 +22,7 @@ class RegisterView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response({
-                'code':'0',
+                'code':0,
                 'message':'注册成功'
             },status=status.HTTP_200_OK)
 

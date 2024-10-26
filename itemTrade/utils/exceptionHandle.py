@@ -15,7 +15,7 @@ def api_exception_handler(exc, context):
 
     # 默认处理
     return response if response is not None else Response({
-        'code': 'error',
+        'code': 502,
         'message': 'An unexpected error occurred.',
         'details': str(exc)
     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
