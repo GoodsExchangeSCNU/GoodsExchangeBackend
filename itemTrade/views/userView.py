@@ -61,7 +61,7 @@ class UserView(APIView):
         serializer = UserSerializer(user, data=requets.data)
         
         if serializer.is_valid(raise_exception=True):
-            user = get_user_
+            serializer.save()
             return Response({
                 'code':0,
                 'message':'修改成功'
