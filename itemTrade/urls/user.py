@@ -6,6 +6,7 @@ urlpatterns = [
     path('login',TokenObtainPairView.as_view(),name='login'),
     path('refresh',TokenRefreshView.as_view(),name='refresh'),
     path('register',userView.RegisterView.as_view(),name='register'),
+    path('password',userView.ModifyPasswordView.as_view(),name='modifyPassword'),
     path("update",userView.UserView.as_view(),name='user api'),
     path("info",userView.UserView.as_view(),name='user api with search'),
     path("record/buy",userView.BuyerRecordView.as_view(),name="buyerRecordApi"),
