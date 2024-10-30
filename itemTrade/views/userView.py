@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
-from ..serializers.userSerializers import UserSerializer,RegisterSerializer,RecordSerializer
+from ..serializers.userSerializers import UserSerializer,RegisterSerializer,RecordSerializer,ModifyPasswordSerializer
 from django.contrib.auth.models import User
 
 from ..models import *
@@ -54,19 +54,47 @@ class UserView(APIView):
                     'code':1,
                     'message':"用户不存在"
                 })
-            
+    
     def put(self,requets):
         """修改用户信息"""
         user = requets.user
         serializer = UserSerializer(user, data=requets.data)
         
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            user = get_user_
             return Response({
                 'code':0,
                 'message':'修改成功',
                 'data':serializer.data
             })
+
+class ModifyPasswordView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self,request):
+        serializer = ModifyPasswordSerializer(data=request.data)
+        username = request.user.username
+        if serializer.is_valid(raise_exception=True):
+            user = User.objects.get(username=username)
+            if user.check_password(serializer.validated_data['origin_password']):
+                if serializer.validated_data['password'] == serializer.validated_data['confirm_password']:
+                    user.set_password(serializer.validated_data['password'])
+                    user.save()
+                    return Response({
+                        'code':0,
+                        'message':'密码修改成功'
+                    })
+                else:
+                    return Response({
+                        'code':102,
+                        'message':'新密码不一致'
+                    })
+            else:
+                return Response({
+                    'code':101,
+                    'message':'与原密码不匹配'
+                })
+
 
 class BuyerRecordView(APIView):
     authentication_classes = [JWTAuthentication]

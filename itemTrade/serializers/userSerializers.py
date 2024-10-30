@@ -39,6 +39,12 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
+class ModifyPasswordSerializer(serializers.Serializer):
+    origin_password = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     """详细信息序列化"""
 
