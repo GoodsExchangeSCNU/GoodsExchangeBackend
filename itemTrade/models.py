@@ -54,20 +54,20 @@ class ItemImage(models.Model):
 class Trade(models.Model):
     """交易实例"""
     States = (
-        ('Code_0', '撤销'),
-        ('Code_1', '初始化'),
-        ('Code_2', '购买'),
-        ('Code_3', '出售'),
-        ('Code_4', '拒绝'),
-        ('Code_5', '完成'),
-        ('Code_6', '已出货')
+        (0, '撤销'),
+        (1, '初始化'),
+        (2, '购买'),
+        (3, '出售'),
+        (4, '拒绝'),
+        (5, '完成'),
+        (6, '已出货')
     )
 
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='sell_trade')
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='buy_trade')
     item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True, blank=True, related_name='trades')
     created = models.DateTimeField(auto_now_add=True)
-    state = models.CharField(max_length=50, default='Code_1', choices=States)
+    state = models.IntegerField(default=1, choices=States)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
     unReciveError = models.BooleanField(default=False)  # 买家未收到货时的异常状态
