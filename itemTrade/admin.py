@@ -42,6 +42,7 @@ class TradeCommentInline(admin.StackedInline):
 
 class TradeAdmin(admin.ModelAdmin):
     fields = ('id','buyer','seller','item','state')
+    readonly_fields = ('id',)
 
     inlines = (TradeCommentInline,)
 
