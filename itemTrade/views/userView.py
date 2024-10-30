@@ -64,7 +64,8 @@ class UserView(APIView):
             serializer.save()
             return Response({
                 'code':0,
-                'message':'修改成功'
+                'message':'修改成功',
+                'data':serializer.data
             })
 
 class BuyerRecordView(APIView):
