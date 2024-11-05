@@ -10,21 +10,21 @@ class TradeSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField()
 
     FM = {
-        'Code_1':{
-            'Code_0':'buyer',
-            'Code_2':'buyer',
-            'Code_4':'seller'
+        1:{
+            0:'buyer',
+            2:'buyer',
+            4:'seller'
         },
-        'Code_2':{
-            'Code_0':'buyer',
-            'Code_4':'seller',
-            'Code_3':'all'
+        2:{
+            0:'buyer',
+            4:'seller',
+            3:'all'
         },
-        'Code_3':{
-            'Code_6':'seller'
+        3:{
+            6:'seller'
         },
-        'Code_6':{
-            'Code_5':'buyer'
+        6:{
+            5:'buyer'
         }
     }
 

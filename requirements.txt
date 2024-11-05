@@ -52,6 +52,6 @@ Twisted==21.7.0
 txaio==21.2.1
 typing-extensions==3.10.0.2
 urllib3==1.25.8
-uWSGI==2.0.20
+uWSGI==2.0.28
 wcwidth==0.1.8
 zope.interface==5.4.0
