@@ -97,7 +97,14 @@ class RecordUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username']
 
+class ItemImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemImage
+        fields = ['image']
+
 class RecordItemSerializer(serializers.ModelSerializer):
+
+    img = ItemImageSerializer(many=True)
     class Meta:
         model = Item
         fields = ['img','name','price']
