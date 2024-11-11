@@ -81,15 +81,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(str(chatroomid), self.channel_name)
 
     async def fetch_allchatrooms(self, data):
+        data.pop('type',None)
         await self.send(text_data=json.dumps(data))
 
     async def send_notice(self, data):
+        data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
     async def send_message(self, data):
+        data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
     async def fetch_message(self, data):
+        data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
     @sync_to_async
@@ -115,10 +119,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         chatroomlist = []
         for trade in trades_seller:
             buyer_username = trade.buyer.username
-            chatroomlist.append({'type':'seller','seller':user.username, 'buyer':buyer_username,'item': trade.item.name, 'room_id':str(trade.id)})
+            chatroomlist.append({'type':'seller','seller':user.username, 'buyer':buyer_username,'item': trade.item.name, 'room_id':str(trade.id),'item_id':str(trade.item.id)})
         for trade in trades_buyer:
             seller_username = trade.seller.username
-            chatroomlist.append({'type':'buyer','seller':seller_username, 'buyer':user.username,'item':trade.item.name,'room_id':str(trade.id)})
+            chatroomlist.append({'type':'buyer','seller':seller_username, 'buyer':user.username,'item':trade.item.name,'room_id':str(trade.id),'item_id':str(trade.item.id)})
 
         return chatroomlist
 
