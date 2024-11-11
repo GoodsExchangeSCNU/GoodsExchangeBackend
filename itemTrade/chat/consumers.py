@@ -24,57 +24,61 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.uuid, self.channel_name)
 
     async def receive(self, text_data):
-        data = json.loads(text_data)
-        event = data['event']
+        try:
+            data = json.loads(text_data)
+            event = data['event']
 
-        if event == 'fetchallchatrooms':
-            chatroomidlist = await self.fetchallchatroomid(str(data['userid'])) #获取所有tradeid,一个tradeid对应一个聊天室
-            chatroomlist = await self.getchatroomlist(data['userid']) #返回的是一个嵌套字典的列表[{'seller': seller_username, 'buyer':buyer_username,'item': item_name},]
-            await self.addtogroups(chatroomidlist) #将用户group_add到他所拥有的chatroom中
-            await self.channel_layer.group_send(
-                self.userid,
-                {
-                    'type': 'fetch_allchatrooms',
-                    'event': 'FetchChatroomlist',
-                    'chatroomlist': chatroomlist
+            if event == 'fetchallchatrooms':
+                chatroomidlist = await self.fetchallchatroomid(str(data['userid'])) #获取所有tradeid,一个tradeid对应一个聊天室
+                chatroomlist = await self.getchatroomlist(data['userid']) #返回的是一个嵌套字典的列表[{'seller': seller_username, 'buyer':buyer_username,'item': item_name},]
+                await self.addtogroups(chatroomidlist) #将用户group_add到他所拥有的chatroom中
+                await self.channel_layer.group_send(
+                    self.userid,
+                    {
+                        'type': 'fetch_allchatrooms',
+                        'event': 'FetchChatroomlist',
+                        'chatroomlist': chatroomlist
+                        }
+                )
+
+            if event == 'sendnotice':
+                buyer = await self.getmyusername(self.userid)
+                await self.channel_layer.group_send(
+                    str(data['another_userid']),
+                    {
+                        'type': 'send_notice',
+                        'event': 'ReceiveNotice',
+                        'content': f'{buyer}正向你发起聊天'
                     }
-            )
+                )
 
-        if event == 'sendnotice':
-            buyer = await self.getmyusername(self.userid)
-            await self.channel_layer.group_send(
-                str(data['another_userid']),
-                {
-                    'type': 'send_notice',
-                    'event': 'ReceiveNotice',
-                    'content': f'{buyer}正向你发起聊天'
-                }
-            )
+            if event == 'sendmessage':
+                await self.savemessage(data)
+                sender = await self.getmyusername(self.userid)
+                await self.channel_layer.group_send(
+                    str(data['tradeid']),
+                    {
+                        'type': 'send_message',
+                        'event': 'ReceiveMessage',
+                        'sender': sender,
+                        'content': data['content'],
+                        'room_id': str(data['tradeid'])
+                    }
+                )
 
-        if event == 'sendmessage':
-            await self.savemessage(data)
-            sender = await self.getmyusername(self.userid)
-            await self.channel_layer.group_send(
-                str(data['tradeid']),
-                {
-                    'type': 'send_message',
-                    'event': 'ReceiveMessage',
-                    'sender': sender,
-                    'content': data['content'],
-                    'room_id': str(data['tradeid'])
-                }
-            )
-
-        if event == 'fetchmessage':
-            history_messages = await self.getmessage(data['tradeid'])
-            await self.channel_layer.group_send(
-                str(data['tradeid']),
-                {
-                    'type': 'fetch_message',
-                    'event': 'FetchMessage',
-                    'history_messages': history_messages
-                }
-            )
+            if event == 'fetchmessage':
+                history_messages = await self.getmessage(data['tradeid'])
+                await self.channel_layer.group_send(
+                    str(data['tradeid']),
+                    {
+                        'type': 'fetch_message',
+                        'event': 'FetchMessage',
+                        'history_messages': history_messages
+                    }
+                )
+        except Exception as error:
+            print(error)
+            self.send_error_message(5000,error)
 
     async def addtogroups(self, chatroomidlist):
         for chatroomid in chatroomidlist:
@@ -97,41 +101,48 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(data))
 
     async def send_error_message(self,code,message):
-        await self.send({
-            "event":"error",
-            "code":code,
-            "message":message
-        })
+        data = {
+            "event": "error",
+            "code": code,
+            "message": message
+        }
+        await self.send(text_data=json.dumps(data))
 
     @sync_to_async
     def fetchallchatroomid(self, userid):
-        user = User.objects.get(id=userid)
-        trades_seller = user.sell_trade.all()
-        trades_buyer = user.buy_trade.all()
-        tradelist = []
-        for trade in trades_seller:
-            tradeid = trade.id
-            tradelist.append(tradeid)
-        for trade in trades_buyer:
-            tradeid = trade.id
-            tradelist.append(tradeid)
-        
-        return tradelist
+        try:
+            user = User.objects.get(id=userid)
+            trades_seller = user.sell_trade.all()
+            trades_buyer = user.buy_trade.all()
+            tradelist = []
+            for trade in trades_seller:
+                tradeid = trade.id
+                tradelist.append(tradeid)
+            for trade in trades_buyer:
+                tradeid = trade.id
+                tradelist.append(tradeid)
+
+            return tradelist
+        except User.DoesNotExist as error:
+            self.send_error_message(4101,"用户不存在")
         
     @sync_to_async
     def getchatroomlist(self, userid):
-        user = User.objects.get(id=userid)
-        trades_seller = user.sell_trade.all()
-        trades_buyer = user.buy_trade.all()
-        chatroomlist = []
-        for trade in trades_seller:
-            buyer_username = trade.buyer.username
-            chatroomlist.append({'type':'seller','seller':user.username, 'buyer':buyer_username,'item': trade.item.name, 'room_id':str(trade.id),'item_id':str(trade.item.id)})
-        for trade in trades_buyer:
-            seller_username = trade.seller.username
-            chatroomlist.append({'type':'buyer','seller':seller_username, 'buyer':user.username,'item':trade.item.name,'room_id':str(trade.id),'item_id':str(trade.item.id)})
+        try:
+            user = User.objects.get(id=userid)
+            trades_seller = user.sell_trade.all()
+            trades_buyer = user.buy_trade.all()
+            chatroomlist = []
+            for trade in trades_seller:
+                buyer_username = trade.buyer.username
+                chatroomlist.append({'type':'seller','seller':user.username, 'buyer':buyer_username,'item': trade.item.name, 'room_id':str(trade.id),'item_id':str(trade.item.id)})
+            for trade in trades_buyer:
+                seller_username = trade.seller.username
+                chatroomlist.append({'type':'buyer','seller':seller_username, 'buyer':user.username,'item':trade.item.name,'room_id':str(trade.id),'item_id':str(trade.item.id)})
 
-        return chatroomlist
+            return chatroomlist
+        except User.DoesNotExist as error:
+            self.send_error_message(4101,"用户不存在")
 
         
     @sync_to_async
@@ -142,14 +153,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return my_username
         except User.DoesNotExist as error:
             self.send_error_message(1,"用户不存在")
-            self.close(code=4000)
+            self.close(code=4101)
 
     @sync_to_async
     def savemessage(self, data):
-        trade = Trade.objects.get(id=data['tradeid'])
-        sender = User.objects.get(id=self.userid)
-        content = data['content']
-        message = ChatMessage.objects.create(trade=trade, sender=sender, content=content)
+        try:
+            trade = Trade.objects.get(id=data['tradeid'])
+            sender = User.objects.get(id=self.userid)
+            content = data['content']
+            message = ChatMessage.objects.create(trade=trade, sender=sender, content=content)
+        except Trade.DoesNotExist as error:
+            self.send_error_message(4101,"目标用户不存在")
+        except User.DoesNotExist as error:
+            self.send_error_message(4201,"交易不存在")
         
     @sync_to_async
     def getmessage(self, tradeid):
@@ -163,9 +179,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 history_messages.append({'sender':sender.username, 'content':message.content})
             return history_messages
         except Trade.DoesNotExist as error:
-                return ['交易不存在']
-        except Exception as e:
-            print(e)
+            self.send_error_message(2,"交易不存在")
+            return []
 
 
 
