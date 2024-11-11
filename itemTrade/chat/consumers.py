@@ -96,6 +96,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
+    async def send_error_message(self,code,message):
+        await self.send({
+            "event":"error",
+            "code":code,
+            "message":message
+        })
+
     @sync_to_async
     def fetchallchatroomid(self, userid):
         user = User.objects.get(id=userid)
@@ -129,9 +136,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
     @sync_to_async
     def getmyusername(self, userid):
-        user = User.objects.get(id=userid)
-        my_username = user.username
-        return my_username
+        try:
+            user = User.objects.get(id=userid)
+            my_username = user.username
+            return my_username
+        except User.DoesNotExist as error:
+            self.send_error_message(1,"用户不存在")
+            self.close(code=4000)
 
     @sync_to_async
     def savemessage(self, data):
@@ -142,13 +153,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
     @sync_to_async
     def getmessage(self, tradeid):
-        trade = Trade.objects.get(id=tradeid)
-        messages = trade.chatmessage_set.all()
-        history_messages = []
-        for message in messages:
-            sender = message.sender
-            history_messages.append({'sender':sender.username, 'content':message.content})
+        try:
+            trade = Trade.objects.get(id=tradeid)
+            history_messages = []
 
-        return history_messages
+            messages = trade.chatmessage_set.all()
+            for message in messages:
+                sender = message.sender
+                history_messages.append({'sender':sender.username, 'content':message.content})
+            return history_messages
+        except Trade.DoesNotExist as error:
+                return ['交易不存在']
+        except Exception as e:
+            print(e)
+
+
+
 
 
