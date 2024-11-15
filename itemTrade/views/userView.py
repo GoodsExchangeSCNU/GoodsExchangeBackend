@@ -3,7 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
-from ..serializers.userSerializers import UserSerializer,RegisterSerializer,RecordSerializer,ModifyPasswordSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from ..serializers.userSerializers import UserSerializer,RegisterSerializer,RecordSerializer,ModifyPasswordSerializer,CommentSerializer
 from django.contrib.auth.models import User
 
 from ..models import *
@@ -95,6 +97,32 @@ class ModifyPasswordView(APIView):
                     'message':'与原密码不匹配'
                 })
 
+
+class UserCommentView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_QUERY,
+                description="用户的id",
+                type=openapi.TYPE_INTEGER
+            )
+        ]
+    )
+    def get(self,request):
+
+        id = request.GET.get('id')
+        comments = ReviewForTrade.objects.filter(owner_id=int(id)).all()
+        serializer = CommentSerializer(comments,many=True)
+
+        return Response({
+            'code':0,
+            'message':'获取成功',
+            'data':serializer.data
+        })
 
 class BuyerRecordView(APIView):
     authentication_classes = [JWTAuthentication]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import User,Profile,ItemImage,Trade,Item
+from ..models import User,Profile,ItemImage,Trade,Item,ReviewForTrade
 
 from ..utils.errors import ValidationError
 
@@ -92,15 +92,33 @@ class UserSerializer(serializers.ModelSerializer):
 
         return instance
 
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReviewForTrade
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        new_representation = {
+            "owner":instance.owner.username,
+            "comment_body":representation["body"],
+            "time":instance.create_at.timestamp()
+        }
+        return new_representation
+
+
 class RecordUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username']
 
+
 class ItemImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemImage
         fields = ['image']
+
 
 class RecordItemSerializer(serializers.ModelSerializer):
 
@@ -108,6 +126,7 @@ class RecordItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = ['img','name','price']
+
 
 class RecordSerializer(serializers.ModelSerializer):
     """交易记录序列化模型"""

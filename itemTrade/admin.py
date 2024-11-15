@@ -38,7 +38,8 @@ class TradeCommentInline(admin.StackedInline):
     model = ReviewForTrade
     can_delete = True
     verbose_name_plural = "comments"
-    fields = ('owner','body')
+    fields = ('owner','body','create_at')
+    readonly_fields = ('create_at',)
 
 class TradeAdmin(admin.ModelAdmin):
     fields = ('id','buyer','seller','item','state')
