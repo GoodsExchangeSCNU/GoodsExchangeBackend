@@ -51,6 +51,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'content': f'{buyer}正向你发起聊天'
                     }
                 )
+
                 await self.send(text_data=json.dumps({
                     "event":"SendNoticeResponse",
                     "data":{
@@ -60,6 +61,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "content":f"你已成功向{buyer}发起聊天"
                     }
                 }))
+
 
             if event == 'sendmessage':
                 await self.savemessage(data)
@@ -86,8 +88,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     }
                 )
 
-
-
         except Exception as error:
             print(error)
             self.send_error_message(5000,error)
@@ -106,6 +106,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(data))
 
     async def fetch_message(self, data):
+        await self.send(text_data=json.dumps(data))
+
+    async def send_error_message(self,code,message):
+        data = {
+            "event": "error",
+            "code": code,
+            "message": message
+        }
         await self.send(text_data=json.dumps(data))
 
     async def send_error_message(self,code,message):
