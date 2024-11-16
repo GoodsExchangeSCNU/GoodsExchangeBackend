@@ -51,6 +51,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'content': f'{buyer}正向你发起聊天'
                     }
                 )
+                await self.send(text_data=json.dumps({
+                    "event":"SendNoticeResponse",
+                    "data":{
+                        "code": 0,
+                        "message": "发送成功",
+                        "room_id":"",
+                        "content":f"你已成功向{buyer}发起聊天"
+                    }
+                }))
 
             if event == 'sendmessage':
                 await self.savemessage(data)
@@ -76,6 +85,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'history_messages': history_messages
                     }
                 )
+
+
+
         except Exception as error:
             print(error)
             self.send_error_message(5000,error)
@@ -85,19 +97,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(str(chatroomid), self.channel_name)
 
     async def fetch_allchatrooms(self, data):
-        data.pop('type',None)
         await self.send(text_data=json.dumps(data))
 
     async def send_notice(self, data):
-        data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
     async def send_message(self, data):
-        data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
     async def fetch_message(self, data):
-        data.pop('type', None)
         await self.send(text_data=json.dumps(data))
 
     async def send_error_message(self,code,message):
