@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
+from django.db.models import Func, FloatField
 
 from ..serializers.itemSerializers import ItemSerializer,ItemCommentSerializer
 from ..models import Item
@@ -129,7 +130,7 @@ class ItemListView(APIView):
     serializer_class = ItemSerializer
     def get(self,request):
         user = request.user
-        items = user.item.all()
+        items = Item.objects.annotate(rand=Func(function='RAND',output_field=FloatField())).order_by('rand')[:20]
         serializer = self.serializer_class(items,many=True)
 
         return Response({
