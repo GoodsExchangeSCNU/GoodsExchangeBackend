@@ -52,7 +52,8 @@ class UserView(APIView):
             200:UserSerializer,
         }
     )
-    def get(self,request,username=None):
+    def get(self,request):
+        username = request.GET.get("username",None)
         if not username:
             user = request.user
             serializer = UserSerializer(user)
