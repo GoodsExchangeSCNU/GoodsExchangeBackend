@@ -103,7 +103,7 @@ class CommentSerializer(serializers.ModelSerializer):
         new_representation = {
             "owner":instance.owner.username,
             "comment_body":representation["body"],
-            "time":instance.create_at.timestamp()
+            "time":instance.create_at.timestamp()*1000
         }
         return new_representation
 
