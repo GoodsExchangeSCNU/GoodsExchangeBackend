@@ -153,7 +153,7 @@ class UserCommentView(APIView):
     def get(self,request):
 
         id = request.GET.get('id')
-        comments = ReviewForTrade.objects.filter(owner_id=int(id)).all()
+        comments = ReviewForTrade.objects.filter(Trade__seller_id=id).all()
         serializer = CommentSerializer(comments,many=True)
 
         return Response({
