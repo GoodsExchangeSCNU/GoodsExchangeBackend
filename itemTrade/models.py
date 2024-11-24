@@ -26,17 +26,25 @@ class Profile(models.Model):
     
 class Item(models.Model):
     """物品"""
-    owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    owner = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True,related_name='item')
     name = models.CharField(max_length=50,null=True,blank=True)
     description = models.TextField(max_length=100,null=True,blank=True)
     count = models.IntegerField(default=1,null=True,blank=True)
     price = models.IntegerField(default=1,null=True,blank=True)
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
-    models.ImageField()
 
     def __str__(self) -> str:
         return self.name
-    
+
+    def to_dict(self) -> dict:
+        return {
+            'name':self.name,
+            'description':self.description,
+            'count':self.count,
+            'price':self.price,
+            'owner':self.owner.id
+        }
+
 class ItemImage(models.Model):
     """储存单张图片"""
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
@@ -46,20 +54,20 @@ class ItemImage(models.Model):
 class Trade(models.Model):
     """交易实例"""
     States = (
-        ('Code_0', '撤销'),
-        ('Code_1', '初始化'),
-        ('Code_2', '购买'),
-        ('Code_3', '出售'),
-        ('Code_4', '拒绝'),
-        ('Code_5', '完成'),
-        ('Code_6', '已出货')
+        (0, '撤销'),
+        (1, '初始化'),
+        (2, '购买'),
+        (3, '出售'),
+        (4, '拒绝'),
+        (5, '完成'),
+        (6, '已出货')
     )
 
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='sell_trade')
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='buy_trade')
     item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True, blank=True, related_name='trades')
     created = models.DateTimeField(auto_now_add=True)
-    state = models.CharField(max_length=50, default='Code_1', choices=States)
+    state = models.IntegerField(default=1, choices=States)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
     unReciveError = models.BooleanField(default=False)  # 买家未收到货时的异常状态
@@ -74,6 +82,7 @@ class ReviewForItem(models.Model):
     item = models.ForeignKey(Item,on_delete=models.CASCADE,null=True,blank=True,related_name="review")
     body = models.TextField(null=True,blank=True)
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
+    create_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.owner.username}'s comment for {self.item.name}"
@@ -84,6 +93,7 @@ class ReviewForTrade(models.Model):
     Trade = models.OneToOneField(Trade, on_delete=models.CASCADE, null=True, blank=True, related_name="review")
     body = models.TextField(null=True,blank=True)
     id = models.UUIDField(default=uuid.uuid4,unique=True,primary_key=True,editable=False)
+    create_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.owner.username} comment"
@@ -91,7 +101,7 @@ class ReviewForTrade(models.Model):
 class ChatMessage(models.Model):
     """聊天记录"""
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE,null=False)
-    sender = models.ForeignKey(Profile, on_delete=models.CASCADE,null=True)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     content = models.TextField(null=False)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 

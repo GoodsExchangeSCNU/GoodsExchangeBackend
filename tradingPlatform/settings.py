@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'channels',
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_yasg',
     'itemTrade',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -61,7 +62,7 @@ ROOT_URLCONF = 'tradingPlatform.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates'),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -139,8 +140,22 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'EXCEPTION_HANDLER': 'itemTrade.utils.exceptionHandle.api_exception_handler'
+    'EXCEPTION_HANDLER': 'itemTrade.utils.exceptionHandle.api_exception_handler',
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.JSONParser'
+    ]
 }
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1200),
@@ -150,4 +165,18 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+SWAGGER_SETTINGS={
+    'SECURITY_DEFINITIONS': {
+        'Bearer':{
+            'type':'apiKey',
+            'name':'Authorization',
+            'in':'header'
+        }
+    }
+}
+
 ASGI_APPLICATION = "tradingPlatform.asgi.application"
+WSGI_APPLICATION = 'tradingPlatform.wsgi.application'
+
+DEFAULT_CHARSET = 'utf-8'
+FILE_CHARSET = 'utf-8'

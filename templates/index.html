@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+    <style>
+        body, .main-container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+        }
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+        }
+        #userlist {
+            border-right: solid 1px black;
+            padding: 10px;
+        }
+
+        .userlist-item {
+            padding: 10px;
+            border: solid 1px black;
+            cursor: pointer;
+        }
+
+        .userlist-acitve {
+            background-color: aqua;
+        }
+
+        #chat-box {
+            display: grid;
+            grid-template-rows: 3fr 1fr;
+            height: 100vh;
+        }
+
+        #message-box {
+            width: 96.8%;
+            height: 600px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #333;
+            margin-right: 5px;
+        }
+
+        .message-content {
+            margin-top: 2px;
+        }
+
+        .message-item {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 9fr;
+            gap: 10px;
+        }
+
+        #text-edit {
+            display: grid;
+            grid-template-rows: 5fr 1fr;
+        }
+
+        .button-view{
+            display: flex;
+            justify-content: flex-end;
+        }
+        .button-view button{
+            width: 100px;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div id="userlist">
+
+        </div>
+        <div id = "chat-box">
+            <div id="message-box">
+
+            </div>
+            <div id="text-edit">
+                <textarea id="input-text" placeholder="Type your message here..."></textarea>
+                <div class="button-view">
+                    <a href="http://8.138.167.80:6677/search/">添加聊天室</a>
+                    <button id="fetch-btn">获取信息</button>
+                    <button id="submit-btn">发送</button>
+                    <button id="post-trade">post trade</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        axios.interceptors.request.use((config)=>{
+            config.headers = {
+                'Authorization':`Bearer ${localStorage.getItem("access")}`
+            }
+
+            return config
+        })
+
+        const getseller = ()=>{}
+        const getprofile = ()=> {
+            axios.get("/api/user/")
+            .then(res=>{
+                console.log("success login")
+                data =res.data.data
+                console.log(data.id)
+                createchatroom(data)
+            })
+        }
+        const userlistItems = document.querySelectorAll(".userlist-item");
+        let currentChat = '';
+        const messageBox = document.getElementById("message-box");
+		const inputtext = document.getElementById('input-text');
+        const fetchBtn = document.getElementById('fetch-btn');
+        const postBtn = document.getElementById('post-trade');
+        const submitBtn = document.getElementById('submit-btn');
+        getprofile()
+        const createchatroom = (data) => {
+            class ChatSocket{
+                constructor(){
+                    this.ws = new WebSocket(`ws://8.138.167.80:6699/ws/chat/${data.id}/`);
+                    this.start();
+                }
+
+                start(){
+                    let outer = this
+                    this.ws.onopen=function(e){
+                        outer.fetchallchatrooms(data.id)
+                    }
+                    this.receive();
+                }
+
+                receive(){
+                    console.log("receiving")
+                    let outer = this;
+                    this.ws.onmessage=function(e){
+                        let data=JSON.parse(e.data);
+                        console.log("success receive from socket")
+                        console.log(data)
+                        event = data.event
+                        if(event==='FetchChatroomlist'){
+                            outer.renderchatroomlist(data.chatroomlist);
+                        }
+                        if(event==='ReceiveNotice'){
+                            outer.sendnotice(data.content);
+                        }
+                        if(event==='ReceiveMessage'){
+                            outer.sendmessage(data)
+                        }
+                        if(event==='FetchMessage'){
+                            outer.fetchmessage(data['history_messages'])
+                        }
+                    } 
+                }
+
+                fetchallchatrooms(userid){
+                    this.ws.send(JSON.stringify({
+                        'event': 'fetchallchatrooms',
+                        'userid': userid,
+                    }))
+                }
+                /*
+                当用户进入聊天室时，获取所有的聊天室列表数据
+                */
+
+
+                renderchatroomlist(chatroomlist){
+                    const userlist = document.querySelector('#userlist')
+                    let content = ` `
+                    for(let i = 0; i < chatroomlist.length; i ++)
+                        content += `
+                        <div class='userlist-item' data-chat='${i}'>Trade On ${chatroomlist[i]['item']} <br> Chat ${chatroomlist[i]['seller']} and ${chatroomlist[i]['buyer']}</div>
+                        `
+                    userlist.innerHTML=content
+                }
+
+                sendnotice(tip){
+                    let messagebox = document.querySelector('#message-box')
+                    let content = ` `
+                    content += `
+                        <div class='message'>Tips: ${tip} </div>
+                    `
+                    messagebox.innerHTML=content
+                    /*
+                    只有买方才能向卖方发送这个tips信息
+                    */
+                }
+
+                sendmessage(data){
+                    console.log("send Mesage............")
+                    const messageDiv = document.createElement("div");
+                    messageDiv.classList.add('message')
+ 
+                    // 创建一个span来显示用户名
+                    const usernameSpan = document.createElement("span");
+                    usernameSpan.classList.add("username");
+                    usernameSpan.textContent = data['sender'] + ": ";
+
+                    // 创建一个p标签来显示消息内容
+                    const messageContent = document.createElement("p");
+                    messageContent.classList.add("message-content");
+                    messageContent.textContent = data['content'];
+
+                    // 将用户名和消息内容添加到messageDiv
+                    messageDiv.appendChild(usernameSpan);
+                    messageDiv.appendChild(messageContent);
+
+                    // 将消息添加到message-box中
+                    messageBox.appendChild(messageDiv);
+                    messageBox.scrollTop = messageBox.scrollHeight;
+
+                }
+
+                fetchmessage(messages){
+                    for(let i = 0; i < messages.length; i ++){
+                        this.sendmessage(messages[i])
+                    }
+
+                }
+
+            }
+
+            let chatroom = new ChatSocket();
+
+            const posttrade = ()=>{
+                console.log("post trade success")
+                sendnotice(userid)
+                /*
+                 这里是用户点击“我想要”并在创建trade实例后，要调用的函数，向卖家
+                 通知由新的交易被发起。
+                */
+            }
+
+            const sendnotice= (userid)=>{
+                console.log("success send notice")
+                chatroom.ws.send(JSON.stringify({
+                    'event': 'sendnotice',
+                    'userid': userid,
+                    'another_userid': userid
+                    /*
+                    提示卖方有人向你发起交易
+                    这里到时会把trade实例化后的买卖方id传过来
+                    不过当时现写的trade POST API出bug了，
+                    但是很奇怪用postman的form-data进行POST就可以
+                    所以合理怀疑是axios post的格式出了问题
+                    */
+                }))
+
+            }
+
+            const sendmessage = ()=> {
+                const message_send = inputtext.value
+                if (message_send !== ""){
+                    chatroom.ws.send(JSON.stringify({
+                        'event': 'sendmessage',
+                        'userid': data.id,
+                        'content': message_send,
+                        'tradeid': "747c1c72-2b10-466e-a7ed-9ad0d707c0b6"
+
+                    /*tradeid需要监听用户点击进入了那间chatroom
+                      然后返回对应的tradeid。有两种监听模式，
+                      一种是用户在商品页界面点击‘我想要’得到的tradeid；
+                      另一种是进入聊天室列表选择哪一间聊天室加入而得到的tradeid
+
+                      所以sendmessage还要传入参数data来获取tradeid
+                    */
+                    }))
+                }
+                console.log("Message sent:", message_send)
+                inputtext.value = ""
+            }
+            
+            const fetchmessage = ()=> {
+                chatroom.ws.send(JSON.stringify({
+                    'event': 'fetchmessage',
+                    'tradeid': "747c1c72-2b10-466e-a7ed-9ad0d707c0b6"
+                }))
+            }
+
+            //当用户点击进入某个聊天室时会触发
+           
+            /*
+            // 点击聊天室
+            userlistItems.forEach(item => {
+                item.addEventListener("click", function() {
+                    currentChat = this.getAttribute("data-chat");
+                    updateMessageBox();
+                    setActiveChat(this);
+                });
+            });
+
+            // 更新消息框
+            function updateMessageBox() {
+                messageBox.innerHTML = ''; // 清空消息框
+                chatData[currentChat].forEach(msg => {
+                    const msgDiv = document.createElement("div");
+                    msgDiv.classList.add("message");
+                    msgDiv.textContent = msg;
+                    messageBox.appendChild(msgDiv);
+                });
+            messageBox.scrollTop = messageBox.scrollHeight; // 自动滚动到底部
+            }
+
+            // 设置当前活动的聊天室样式
+            function setActiveChat(activeItem) {
+                userlistItems.forEach(item => item.classList.remove("userlist-active"));
+                activeItem.classList.add("userlist-active");
+            }
+
+            // 发送消息
+            submitBtn.addEventListener("click", function() {
+                const message = inputText.value.trim();
+                if (message && currentChat) {
+                    chatData[currentChat].push(message); // 保存消息
+                    updateMessageBox(); // 更新消息框
+                    inputText.value = ""; // 清空输入框
+                }
+            });
+            */
+
+            fetchBtn.addEventListener('click', fetchmessage);
+            postBtn.addEventListener('click', posttrade);
+            submitBtn.addEventListener('click', sendmessage);
+
+       }
+
+    </script>
+</body>
+</html>
+

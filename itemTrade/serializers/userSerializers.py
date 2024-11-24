@@ -1,7 +1,5 @@
-import pdb
-
 from rest_framework import serializers
-from ..models import User,Profile,ItemImage,Trade,Item
+from ..models import User,Profile,ItemImage,Trade,Item,ReviewForTrade
 
 from ..utils.errors import ValidationError
 
@@ -12,6 +10,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username','password','confirm_password']
+
         extra_kwargs = {
             'username': {'validators': []},
         }
@@ -35,7 +34,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(username=validated_data['username'])
         user.set_password(validated_data['password'])
         user.save()
+
+        Profile.objects.create(user=user)
+
         return user
+
+class ModifyPasswordSerializer(serializers.Serializer):
+    origin_password = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     """详细信息序列化"""
@@ -58,9 +66,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email','profile']
+        fields = ['id','username', 'email','profile']
         # 这里将profile的字段都设置出来，为了让创建和更新的时候可以不嵌套
         extra_kwargs = {
+            'id':{'required':False,'read_only':True},
             'username':{'required':False},
             'email':{'required':False}
         }
@@ -83,15 +92,41 @@ class UserSerializer(serializers.ModelSerializer):
 
         return instance
 
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReviewForTrade
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        new_representation = {
+            "owner":instance.owner.username,
+            "comment_body":representation["body"],
+            "time":instance.create_at.timestamp()*1000
+        }
+        return new_representation
+
+
 class RecordUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username']
 
+
+class ItemImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemImage
+        fields = ['image']
+
+
 class RecordItemSerializer(serializers.ModelSerializer):
+
+    img = ItemImageSerializer(many=True)
     class Meta:
         model = Item
         fields = ['img','name','price']
+
 
 class RecordSerializer(serializers.ModelSerializer):
     """交易记录序列化模型"""
@@ -102,11 +137,3 @@ class RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
         fields = ['id','state','seller','buyer','item']
-
-
-
-class ImageSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ItemImage
-        fields = '__all__'
