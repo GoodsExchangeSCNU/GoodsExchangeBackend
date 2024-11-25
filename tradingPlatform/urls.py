@@ -34,5 +34,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('api/', include('itemTrade.urls')),
     path('admin/', admin.site.urls),
-    path('doc/',schema_view.with_ui("swagger",cache_timeout=0),name="swagger")
+    path('doc/',schema_view.with_ui("swagger",cache_timeout=0),name="swagger"),
+    path("doc.json/",schema_view.without_ui(cache_timeout=0)),
+    path("doc.yaml/",schema_view.without_ui(cache_timeout=0))
 ]
