@@ -20,8 +20,11 @@ class RegisterView(APIView):
     serializer_class = RegisterSerializer
 
     @swagger_auto_schema(
-        operation_summary="用户注册",
+        operation_summary="user register",
         request_body=RegisterSerializer,
+        responses={
+            200:openapi.Response(description="base responses")
+        }
     )
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -39,12 +42,12 @@ class UserView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_summary="获取用户个人信息",
+        operation_summary="get the information about user",
         manual_parameters=[
             openapi.Parameter(
                 name="username",
                 in_=openapi.IN_PATH,
-                description="用户名",
+                description="username",
                 type=openapi.TYPE_STRING
             )
         ],
@@ -78,8 +81,11 @@ class UserView(APIView):
                 })
 
     @swagger_auto_schema(
-        operation_summary="修改用户个人信息",
-        request_body=UserSerializer
+        operation_summary="update the user's information",
+        request_body=UserSerializer,
+        responses={
+            200:UserSerializer
+        }
     )
     def put(self,requets):
         """修改用户信息"""
@@ -99,11 +105,11 @@ class ModifyPasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_summary="修改密码",
+        operation_summary="change user's password",
         request_body=ModifyPasswordSerializer,
         responses={
             200:openapi.Response(
-                description="提示信息"
+                description="base response"
             )
         }
     )
@@ -137,7 +143,7 @@ class UserCommentView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_summary="获取用户评论",
+        operation_summary="get the comment for this user",
         manual_parameters=[
             openapi.Parameter(
                 'id',
@@ -147,7 +153,7 @@ class UserCommentView(APIView):
             )
         ],
         responses={
-            200:"成功信息"
+            200:"base response"
         }
     )
     def get(self,request):
@@ -169,9 +175,9 @@ class BuyerRecordView(APIView):
     serializer_class = RecordSerializer
 
     @swagger_auto_schema(
-        operation_summary="获取购买记录",
+        operation_summary="get the buy record",
         responses={
-            200:RegisterSerializer
+            200:RecordSerializer
         }
     )
     def get(self,request):
@@ -193,7 +199,7 @@ class SellerRecordView(APIView):
     serializer_class = RecordSerializer
 
     @swagger_auto_schema(
-        operation_summary="销售记录",
+        operation_summary="get the sell record",
         responses={
             200:RecordSerializer
         }
