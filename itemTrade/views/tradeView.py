@@ -2,8 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated,AllowAny
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-from ..models import Trade
+from ..models import Trade,Item
 from ..serializers.tradeSerializers import TradeSerializer, CommentSerializer, BuyerRoomListSerializer,SellerRoomListSerializer, CreateTradeSerializer
 
 
@@ -13,6 +15,13 @@ class TradeView(APIView):
 
     serializer_class = TradeSerializer
 
+    @swagger_auto_schema(
+        operation_summary="update the trade state",
+        request_body=TradeSerializer,
+        responses={
+            200: TradeSerializer
+        }
+    )
     def put(self,request):
         trade_id = request.data.pop('trade_id')
         state = request.data.get('state',None)
@@ -51,12 +60,20 @@ class TradeView(APIView):
             'message':'修改成功'
         })
 
+    @swagger_auto_schema(
+        operation_summary="create a trade",
+        request_body=CreateTradeSerializer,
+        responses={
+            200: openapi.Response(description="base response")
+        }
+    )
     def post(self,request):
         data = {
             'user':request.user.id,
             'item':request.data.get('item_id',None)
         }
-        if not data['item'] or not Trade.objects.filter(id=data['item']).exists():
+        print(data)
+        if not data['item'] or not Item.objects.filter(id=data['item']).exists():
             return Response({
                 'code':101,
                 'message':'物品不存在'
@@ -77,6 +94,13 @@ class CommentView(APIView):
 
     serializer_class = CommentSerializer
 
+    @swagger_auto_schema(
+        operation_summary="create a comment for trade",
+        request_body=CommentSerializer,
+        responses={
+            200: CommentSerializer
+        }
+    )
     def put(self, request):
         trade_id = request.data.get('trade_id',None)
         body = request.data.get('body',None)
@@ -109,6 +133,12 @@ class RoomListView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @swagger_auto_schema(
+        operation_summary="return a list of trade which relevant to the user ",
+        responses={
+            200: BuyerRoomListSerializer
+        }
+    )
     def get(self,request):
         user = request.user
 
