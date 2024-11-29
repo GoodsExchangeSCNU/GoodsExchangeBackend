@@ -179,8 +179,14 @@ class ItemListView(APIView):
     )
     def get(self,request):
         user = request.user
-        items = Item.objects.annotate(rand=Func(function='RAND',output_field=FloatField())).order_by('rand')[:20]
+        items = user.item
+
         serializer = self.serializer_class(items,many=True)
+        if len(serializer.data) == 0:
+            return Response({
+                'code':101,
+                'message':"物品数量为0"
+            })
 
         return Response({
             'code':0,
