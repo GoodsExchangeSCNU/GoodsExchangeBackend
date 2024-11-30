@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-from ..models import Item,ItemImage,ReviewForItem
+from ..models import Item,ItemImage,ReviewForItem,User
 from ..utils.errors import ValidationError
 from ..serializers.userSerializers import UserSerializer
 
@@ -18,7 +18,6 @@ class ImageSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     """物品类序列化模型"""
     img = ImageSerializer(many=True)
-    owner = UserSerializer()
 
     class Meta:
         model = Item
@@ -58,6 +57,18 @@ class ItemSerializer(serializers.ModelSerializer):
 
         instance.refresh_from_db()
         return instance
+
+    def to_representation(self, instance):
+        representation_data = super().to_representation(instance)
+
+        try:
+            user = User.objects.get(id=representation_data.get('owner',None))
+            owner = UserSerializer(user)
+            representation_data['user'] = owner.data
+        except User.DoesNotExist as e:
+            pass
+
+        return representation_data
 
 class ItemCommentSerializer(serializers.ModelSerializer):
 
