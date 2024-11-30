@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from ..models import Item,ItemImage,ReviewForItem
 from ..utils.errors import ValidationError
+from ..serializers.userSerializers import UserSerializer
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,10 +18,11 @@ class ImageSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     """物品类序列化模型"""
     img = ImageSerializer(many=True)
+    owner = UserSerializer()
 
     class Meta:
         model = Item
-        fields = ['id','name','description','owner','count','price','img']
+        fields = ['id','name','owner','description','count','price','img']
         extra_kwargs = {
             'id':{'required':False,'read_only':True},
             'name': {'required': True},

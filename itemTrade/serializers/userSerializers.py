@@ -50,7 +50,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ['student_id','student_class','contact','facauty','dormitory']
         extra_kwargs = {
             'student_id':{'required':False},
             'student_class':{'required':False},
