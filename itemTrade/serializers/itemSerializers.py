@@ -59,7 +59,8 @@ class ItemSerializer(serializers.ModelSerializer):
             'description': {'required': True},
             'owner': {'required': True},
             'count': {'required': True},
-            'price': {'required': True}
+            'price': {'required': True},
+            'review':{'read_only':True}
         }
 
     def create(self, validated_data):
