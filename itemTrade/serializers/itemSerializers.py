@@ -48,7 +48,7 @@ class ItemCommentSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     """物品类序列化模型"""
     img = ImageSerializer(many=True)
-    review = ItemCommentSerializer(many=True)
+    review = ItemCommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = Item
@@ -60,7 +60,7 @@ class ItemSerializer(serializers.ModelSerializer):
             'owner': {'required': True},
             'count': {'required': True},
             'price': {'required': True},
-            'review':{'read_only':True}
+            'review':{'required':False,'read_only':True}
         }
 
     def create(self, validated_data):
