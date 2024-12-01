@@ -15,13 +15,30 @@ class ImageSerializer(serializers.ModelSerializer):
 
         return representation["image"]
 
+class ItemCommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ReviewForItem
+        fields = '__all__'
+
+
+    def create(self, validated_data):
+        item = validated_data.get('item')
+        body = validated_data.get('body')
+        owner = validated_data.get('owner')
+        print(item)
+
+        review = ReviewForItem.objects.create(item=item,body=body,owner=owner)
+        return review
+
 class ItemSerializer(serializers.ModelSerializer):
     """物品类序列化模型"""
     img = ImageSerializer(many=True)
+    comment_area = ItemCommentSerializer(many=True)
 
     class Meta:
         model = Item
-        fields = ['id','name','owner','description','count','price','img']
+        fields = ['id','name','owner','description','count','price','img','comment_area']
         extra_kwargs = {
             'id':{'required':False,'read_only':True},
             'name': {'required': True},
@@ -70,18 +87,3 @@ class ItemSerializer(serializers.ModelSerializer):
 
         return representation_data
 
-class ItemCommentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ReviewForItem
-        fields = '__all__'
-
-
-    def create(self, validated_data):
-        item = validated_data.get('item')
-        body = validated_data.get('body')
-        owner = validated_data.get('owner')
-        print(item)
-
-        review = ReviewForItem.objects.create(item=item,body=body,owner=owner)
-        return review
