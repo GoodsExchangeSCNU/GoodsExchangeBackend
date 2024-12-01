@@ -80,6 +80,8 @@ class TradeSerializer(serializers.ModelSerializer):
         if count_op == self.CountOperate.PLUS:
             item.count += 1
         elif count_op == self.CountOperate.SUBTRACT:
+            if item.count < 1:
+                raise ValidationError(code=106,detail="物品残余数量不足")
             item.count -= 1
         item.save()
 
