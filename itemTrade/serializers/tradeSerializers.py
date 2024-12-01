@@ -1,3 +1,5 @@
+from enum import Enum
+0
 from rest_framework import serializers
 
 from ..models import Trade,User,ReviewForTrade,Item
@@ -9,22 +11,32 @@ class TradeSerializer(serializers.ModelSerializer):
     trade_id = serializers.UUIDField()
     user = serializers.IntegerField()
 
+    class UserType(Enum):
+        BUYER  = 0
+        SELLER = 1
+        ALL = 2
+
+    class CountOperate(Enum):
+        PLUS = 0
+        SUBTRACT = 1
+        NONE = 2
+
     FM = {
         1:{
-            0:'buyer',
-            2:'buyer',
-            4:'seller'
+            0:(UserType.BUYER,CountOperate.NONE),
+            2:(UserType.BUYER,CountOperate.SUBTRACT),
+            4:(UserType.SELLER,CountOperate.NONE)
         },
         2:{
-            0:'buyer',
-            4:'seller',
-            3:'all'
+            0:(UserType.BUYER,CountOperate.PLUS),
+            4:(UserType.SELLER,CountOperate.PLUS),
+            3:(UserType.ALL,CountOperate.NONE)
         },
         3:{
-            6:'seller'
+            6:(UserType.SELLER,CountOperate.NONE)
         },
         6:{
-            5:'buyer'
+            5:(UserType.BUYER,CountOperate.NONE)
         }
     }
 
@@ -55,10 +67,21 @@ class TradeSerializer(serializers.ModelSerializer):
         if not next_change:
             raise ValidationError(code=105,detail="无法做出变化")
 
-        if next_change == "buyer" and trade.buyer != user:
+        user_type = next_change[0]
+        count_op = next_change[1]
+
+        if user_type == self.UserType.BUYER and trade.buyer != user:
             raise ValidationError(code=105,detail="无法做出变化")
-        elif next_change == "seller" and trade.seller != user:
+        elif user_type == self.UserType.SELLER and trade.seller != user:
             raise ValidationError(code=105, detail="无法做出变化")
+
+        # 处理数量变化
+        item = Item.objects.filter(trades__id=trade_id).first()
+        if count_op == self.CountOperate.PLUS:
+            item.count += 1
+        elif count_op == self.CountOperate.SUBTRACT:
+            item.count -= 1
+        item.save()
 
         return data
 

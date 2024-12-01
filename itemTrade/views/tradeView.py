@@ -31,7 +31,7 @@ class TradeView(APIView):
                 'message':'交易id为空'
             })
 
-        if not state:
+        if state is None:
             return Response({
                 'code':102,
                 'message':'更新状态为空'
@@ -72,11 +72,19 @@ class TradeView(APIView):
             'user':request.user.id,
             'item':request.data.get('item_id',None)
         }
-        print(data)
+
         if not data['item'] or not Item.objects.filter(id=data['item']).exists():
             return Response({
                 'code':101,
                 'message':'物品不存在'
+            })
+
+        # 检查物品的数量
+        item = Item.objects.filter(id=data['item']).first()
+        if item.count < 1:
+            return Response({
+                'code':102,
+                'message':'物品数量不足'
             })
 
         serializer = CreateTradeSerializer(data=data)
