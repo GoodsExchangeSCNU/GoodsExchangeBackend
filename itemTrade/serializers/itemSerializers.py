@@ -34,11 +34,11 @@ class ItemCommentSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     """物品类序列化模型"""
     img = ImageSerializer(many=True)
-    comment_area = ItemCommentSerializer(many=True)
+    review = ItemCommentSerializer(many=True)
 
     class Meta:
         model = Item
-        fields = ['id','name','owner','description','count','price','img','comment_area']
+        fields = ['id','name','owner','description','count','price','img','review']
         extra_kwargs = {
             'id':{'required':False,'read_only':True},
             'name': {'required': True},
