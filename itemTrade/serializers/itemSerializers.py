@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 
@@ -16,7 +18,6 @@ class ImageSerializer(serializers.ModelSerializer):
         return representation["image"]
 
 class ItemCommentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ReviewForItem
         fields = '__all__'
@@ -26,10 +27,23 @@ class ItemCommentSerializer(serializers.ModelSerializer):
         item = validated_data.get('item')
         body = validated_data.get('body')
         owner = validated_data.get('owner')
-        print(item)
 
         review = ReviewForItem.objects.create(item=item,body=body,owner=owner)
         return review
+
+    def to_representation(self, instance):
+        representation_data = super().to_representation(instance)
+        create_at = representation_data.get("create_at")
+        owner = representation_data.get("owner")
+        if create_at:
+            create_at = datetime.datetime.fromisoformat(create_at.replace("Z","+00:00"))
+            representation_data["create_at"] = int(create_at.timestamp() * 1000)
+
+        if owner:
+            owner = User.objects.get(id=owner)
+            representation_data["owner"] = owner.username
+
+        return representation_data
 
 class ItemSerializer(serializers.ModelSerializer):
     """物品类序列化模型"""
