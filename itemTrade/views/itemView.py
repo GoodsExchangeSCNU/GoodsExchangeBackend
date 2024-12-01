@@ -6,7 +6,7 @@ from django.db.models import Func, FloatField
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from ..serializers.itemSerializers import ItemSerializer,ItemCommentSerializer, UserSerializer
-from ..models import Item
+from ..models import Item, Trade
 from ..utils.errors import ValidationError
 
 class ItemView(APIView):
@@ -152,6 +152,12 @@ class ItemView(APIView):
 
         try:
             item = Item.objects.get(id=id)
+            if Trade.objects.filter(item=item).exists():
+                return Response({
+                    'code':103,
+                    'message':'物品存在交易不能删除'
+                })
+
             item.delete()
             return Response({
                 'code':0,

@@ -13,7 +13,7 @@ class RecommandView(APIView):
 
     def get(self,request):
         user = request.user
-        items = Item.objects.annotate(rand=Func(function='RAND',output_field=FloatField())).order_by('rand')[:20]
+        items = Item.objects.annotate(rand=Func(function='RAND',output_field=FloatField())).filter(count__gte=1).order_by('rand')[:20]
         serializer = ItemSerializer(items,many=True)
 
         return Response({
